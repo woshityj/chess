@@ -52,8 +52,9 @@ class Game
 
     # Get the new Row and Column the Player would like to move the Unit to
     puts 'Enter the location you would like the move the unit to'
-    new_piece_location = gets
-    new_piece_location = new_piece_location.to_i
+    new_piece_location = gets.chomp
+
+    # Append the Row and Column of the Unit into an Array
     new_piece_location_array = new_piece_location.to_s.split('').map(&:to_i)
 
     # Get an array of possible locations the Unit can be moved to
@@ -64,6 +65,8 @@ class Game
       return move_piece(player)
     end
 
+    return new_piece_location_array
+    return @board.position_occupied_by_same_team?(piece, new_piece_location_array)
     if @board.position_occupied_by_same_team?(piece, new_piece_location_array) == true
       puts 'Position is occupied by another piece from your team'
       return move_piece(player)
