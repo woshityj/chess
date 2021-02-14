@@ -65,8 +65,6 @@ class Game
       return move_piece(player)
     end
 
-    return new_piece_location_array
-    return @board.position_occupied_by_same_team?(piece, new_piece_location_array)
     if @board.position_occupied_by_same_team?(piece, new_piece_location_array) == true
       puts 'Position is occupied by another piece from your team'
       return move_piece(player)
@@ -77,16 +75,23 @@ class Game
     if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true
       @board.board[old_piece_location[0]][old_piece_location[1]] = ' '
       @board.board[new_piece_location_array[0]][new_piece_location_array[1]] = piece.type
+
       if player == 'Player 1'
         @board.player1[index].location = new_piece_location_array
         opponent_index = @board.player2.find_index { |unit| unit.location == new_piece_location_array }
         @board.player2.delete_at(opponent_index)
+
       else
         @board.player2[index].location = new_piece_location_array
         opponent_index = @board.player1.find_index { |unit| unit.location == new_piece_location_array }
         @board.player1.delete_at(opponent_index)
       end
     end
+
+    # if piece.piece_in_between?(old_piece_location, new_piece_location_array) == true
+    #   puts 'Position inbetween the starting position and the new position is occupied by a piece'
+    #   return move_piece(player)
+    # end
 
     # If the location is valid, replace the current location of the Unit with the new location
     if @board.board[new_piece_location_array[0]][new_piece_location_array[1]] == ' '
@@ -101,21 +106,6 @@ class Game
     @board.display_board
   end
 
-  # # Eat another piece
-  # def piece_capture(current_player, current_piece, new_piece_location)
-
-  #   if current_player == 'Player 1'
-  #     @board.player2.each do |piece|
-  #       if piece.location == new_piece_location
-          
-
-  #   # Check if the new location is occupied by a different piece
-  #   # Get the current team color of the piece 
-  #   # Check if the team color of the piece its taking over different
-  # end
-
-  
-
   # User Input Validation Functions
   def piece_validation?(user_input)
     user_input = user_input.downcase
@@ -127,10 +117,14 @@ class Game
     return true if user_input.between?(0..7)
   end
 
-  def valid_new_position?(possible_positions, new_piece_position)
+  def valid_new_position?(possible_positions, new_piece_location)
     possible_positions.each do |position|
-      return true if position == new_piece_position
+      return true if position == new_piece_location
     end
+  end
+
+  def rook_can_move?(current_piece, new_piece_location)
+    
   end
 end
 
