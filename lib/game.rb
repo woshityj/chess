@@ -16,22 +16,6 @@ class Game
     @turn_counter % 2 == 0 ? 'Player 1' : 'Player 2'
   end
 
-  def convert_piece_string(piece_string)
-    if piece_string == 'king'
-      return '♚'
-    elsif piece_string == 'queen'
-      return '♛'
-    elsif piece_string == 'rook'
-      return '♜'
-    elsif piece_string == 'bishop'
-      return '♝'
-    elsif piece_string == 'knight'
-      return '♞'
-    elsif piece_string == 'pawn'
-      return '♟'
-    end
-  end
-
   # Get Piece the User would like to move
   def move_piece(player)
     # Gets the Row and Column of the Unit that the Player would like to move
@@ -65,7 +49,7 @@ class Game
       return move_piece(player)
     end
 
-    if @board.position_occupied_by_same_team?(piece, new_piece_location_array) == true
+    if @board.position_occupied_by_same_team?(player, new_piece_location_array) == true
       puts 'Position is occupied by another piece from your team'
       return move_piece(player)
     end
@@ -88,10 +72,10 @@ class Game
       end
     end
 
-    # if piece.piece_in_between?(old_piece_location, new_piece_location_array) == true
-    #   puts 'Position inbetween the starting position and the new position is occupied by a piece'
-    #   return move_piece(player)
-    # end
+    if piece_in_between?(old_piece_location, new_piece_location_array) == true
+      puts 'Position inbetween the starting position and the new position is occupied by a piece'
+      return move_piece(player)
+    end
 
     # If the location is valid, replace the current location of the Unit with the new location
     if @board.board[new_piece_location_array[0]][new_piece_location_array[1]] == ' '
@@ -106,12 +90,24 @@ class Game
     @board.display_board
   end
 
-  # User Input Validation Functions
-  def piece_validation?(user_input)
-    user_input = user_input.downcase
-    return true if %w[king queen rook bishop knight pawn].include?(user_input)
+  # Function to determine type of piece
+  def piece_type(piece)
+    if piece.type == '♟'
+      return 'Pawn'
+    elsif piece.type == '♜'
+      return 'Rook'
+    elsif piece.type == '♞'
+      return 'Knight'
+    elsif piece.type == '♝'
+      return 'Bishop'
+    elsif piece.type == '♛'
+      return 'Queen'
+    elsif piece.type == '♚'
+      return 'King'
+    end
   end
 
+  # User Input Validation Functions
   def integer_validation?(user_input)
     user_input = user_input.to_i
     return true if user_input.between?(0..7)
@@ -123,8 +119,29 @@ class Game
     end
   end
 
-  def rook_can_move?(current_piece, new_piece_location)
-    
+  def piece_in_between_rook?(starting_position, ending_position)
+    if starting_position[0] < ending_position[0]
+      while starting_position[0] != ending_position[0]
+        starting_position[0] += 1
+        puts starting_position[1]
+        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
+      end
+    elsif starting_position[0] > ending_position[0]
+      while starting_position[0] != ending_position[0]
+        starting_position[0] -= 1
+        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
+      end
+    elsif starting_position[1] < ending_position[1]
+      while starting_position[1] != ending_position[0]
+        starting_position[1] += 1
+        return true if @board.board[starting_position[1]][starting_position[1]] != ' '
+      end
+    elsif starting_position[1] > ending_position[1]
+      while starting_position[1] != ending_position[0]
+        starting_position[1] -= 1
+        return true if @board.board[starting_position[1]][starting_position[1]] != ' '
+      end
+    end
   end
 end
 

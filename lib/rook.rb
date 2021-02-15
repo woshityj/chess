@@ -1,3 +1,4 @@
+
 class Rook
   attr_accessor :location, :rook_number, :team, :type
 
@@ -26,29 +27,5 @@ class Rook
       end
     end
     possible_positions
-  end
-
-  def piece_in_between?(starting_position, ending_position)
-    if starting_position[0] < ending_position[0]
-      while starting_position[0] != ending_position[0]
-        starting_position[0] += 1
-        return true if @board[starting_position[0]][starting_position[1]] != ' '
-      end
-    elsif starting_position[0] > ending_position[0]
-      while starting_position[0] != ending_position[0]
-        starting_position[0] -= 1
-        return true if @board[starting_position[0]][starting_position[1]] != ' '
-      end
-    elsif starting_position[1] < ending_position[1]
-      while starting_position[1] != ending_position[0]
-        starting_position[1] += 1
-        return true if @board[starting_position[1]][starting_position[1]] != ' '
-      end
-    elsif starting_position[1] > ending_position[1]
-      while starting_position[1] != ending_position[0]
-        starting_position[1] -= 1
-        return true if @board[starting_position[1]][starting_position[1]] != ' '
-      end
-    end
   end
 end

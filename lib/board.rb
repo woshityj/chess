@@ -144,18 +144,14 @@ class Board
     end
   end
 
-  def position_occupied_by_same_team?(current_piece, new_piece_location)
-    if current_piece.team == 'white'
+  def position_occupied_by_same_team?(current_player, new_piece_location)
+    if current_player == 'Player 1'
       @player1.each do |piece|
-        if piece.location == new_piece_location
-          return true
-        end
+        return true if piece.location == new_piece_location
       end
     else
       @player2.each do |piece|
-        if piece.location == new_piece_location
-          retrun true
-        end
+        return true if piece.location == new_piece_location
       end
     end
   end
