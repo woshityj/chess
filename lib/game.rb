@@ -1,13 +1,22 @@
 require_relative 'board'
 
 class Game
+
+  PIECE_TYPES_STRING = {
+    '♟' => 'Pawn',
+    '♜' => 'Rook',
+    '♞' => 'Knight',
+    '♝' => 'Bishop',
+    '♛' => 'Queen',
+    '♚' => 'King'
+  }
+
   def initialize
     @board = Board.new
     @turn_counter = 0
   end
 
   # Public Functions
-
   def play
     @board.setup_board
   end
@@ -72,9 +81,20 @@ class Game
       end
     end
 
-    if piece_in_between?(old_piece_location, new_piece_location_array) == true
-      puts 'Position inbetween the starting position and the new position is occupied by a piece'
-      return move_piece(player)
+    piece_type_string = PIECE_TYPES_STRING[piece.type]
+
+    if piece_type_string == 'Rook'
+      if piece_in_between_rook?(old_piece_location, new_piece_location_array) == true
+        puts 'Position inbetween the starting position and the new position is occupied by a piece'
+        return move_piece(player)
+      end
+    end
+
+    if piece_type_string == 'Bishop'
+      if piece_in_between_bishop?(old_piece_location, new_piece_location_array) == true
+        puts 'Position inbetween the starting position and the new position is occupied by a piece'
+        return move_piece(player)
+      end
     end
 
     # If the location is valid, replace the current location of the Unit with the new location
@@ -88,23 +108,6 @@ class Game
       @board.board[new_piece_location_array[0]][new_piece_location_array[1]] = piece.type
     end
     @board.display_board
-  end
-
-  # Function to determine type of piece
-  def piece_type(piece)
-    if piece.type == '♟'
-      return 'Pawn'
-    elsif piece.type == '♜'
-      return 'Rook'
-    elsif piece.type == '♞'
-      return 'Knight'
-    elsif piece.type == '♝'
-      return 'Bishop'
-    elsif piece.type == '♛'
-      return 'Queen'
-    elsif piece.type == '♚'
-      return 'King'
-    end
   end
 
   # User Input Validation Functions
@@ -140,6 +143,34 @@ class Game
       while starting_position[1] != ending_position[0]
         starting_position[1] -= 1
         return true if @board.board[starting_position[1]][starting_position[1]] != ' '
+      end
+    end
+  end
+
+  def piece_in_between_bishop?(starting_position, ending_position)
+    if starting_position[0] < ending_position[0] && starting_position[1] > ending_position[1]
+      until starting_position[0] == ending_position[0] && starting_position[1] == ending_position[1]
+        starting_position[0] += 1
+        starting_position[1] -= 1
+        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
+      end 
+    elsif starting_position[0] < ending_position[0] && starting_position[1] < ending_position[1]
+      until starting_position[0] == ending_position[0] && starting_position[1] == ending_position[1]
+        starting_position[0] += 1
+        starting_position[1] += 1
+        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
+      end
+    elsif starting_position[0] > ending_position[0] && starting_position[1] > ending_position[1]
+      until starting_position[0] == ending_position[0] && starting_position[1] == ending_position[1]
+        starting_position[0] -= 1
+        starting_position[1] -= 1
+        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
+      end
+    elsif starting_position[0] > ending_position[0] && starting_position[1] < ending_position[1]
+      until starting_position[0] == ending_position[0] && starting_position[1] == ending_position[1]
+        starting_position[0] -= 1
+        starting_position[1] += 1
+        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
       end
     end
   end
