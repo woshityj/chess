@@ -47,15 +47,15 @@ class Board
 
   def setup_pawns
     column = 0
-    until @board[1].all? && @board[6].all? { |location| location == '♟' }
+    until @board[1].all? && @board[2].all? { |location| location == '♟' }
       white_pawn_location = [1, column]
       white_pawn = Pawn.new(white_pawn_location, column, 'white')
       @board[1][column] = '♟'
       @player1.append(white_pawn)
 
-      black_pawn_location = [6, column]
+      black_pawn_location = [2, column]
       black_pawn = Pawn.new(black_pawn_location, column, 'black')
-      @board[6][column] = '♟'
+      @board[2][column] = '♟'
       @player2.append(black_pawn)
 
       column += 1

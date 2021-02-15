@@ -1,5 +1,5 @@
 class Pawn
-  attr_accessor :moved, :location, :type, :pawn_number, :team
+  attr_accessor :moved, :location, :type, :pawn_number, :team, :points
 
   def initialize(location, pawn_number, team)
     @moved = false
@@ -7,6 +7,7 @@ class Pawn
     @type = '♟'
     @pawn_number = pawn_number
     @team = team
+    @points = 1
   end
 
   def possible_positions

@@ -1,12 +1,13 @@
 
 class Rook
-  attr_accessor :location, :rook_number, :team, :type
+  attr_accessor :location, :rook_number, :team, :type, :points
 
   def initialize(location, rook_number, team)
     @location = location
     @rook_number = rook_number
     @team = team
     @type = '♜'
+    @points = 5
   end
 
   def possible_positions

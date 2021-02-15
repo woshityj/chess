@@ -1,11 +1,12 @@
 class Queen
-  attr_accessor :location, :queen_number, :team, :type
+  attr_accessor :location, :queen_number, :team, :type, :points
 
   def initialize(location, queen_number, team)
     @location = location
     @queen_number = queen_number
     @team = team
     @type = '♛'
+    @points = 9
   end
 
   QUEEN_MOVES =
