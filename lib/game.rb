@@ -66,6 +66,13 @@ class Game
 
     piece_type_string = PIECE_TYPES_STRING[piece.type]
 
+    if piece_type_string == 'Pawn'
+      if piece_infront_pawn?(old_piece_location, new_piece_location_array) == true
+        puts 'Invalid move by Pawn, Position infront of Pawn is occupied'
+        return play(player)
+      end
+    end
+
     if piece_type_string == 'Rook'
       if piece_in_between_rook?(old_piece_location, new_piece_location_array) == true
         puts 'Position inbetween the starting position and the new position is occupied by a piece'
@@ -80,10 +87,12 @@ class Game
       end
     end
 
-    if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true
-      capture_opponent_piece(piece, index, old_piece_location, new_piece_location_array, player)
-      @board.display_board
-      return display_captured_pieces()
+    if piece_type_string != 'Pawn'
+      if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true
+        capture_opponent_piece(piece, index, old_piece_location, new_piece_location_array, player)
+        @board.display_board
+        return display_captured_pieces()
+      end
     end
 
     # If the location is valid, replace the current location of the Unit with the new location
@@ -126,8 +135,9 @@ class Game
     end
   end
 
-  # def pawn_capture_opponent_piece(current_piece, piece_index, old_piece_location_array, new_piece_location_array, current_player)
-  # end
+  def pawn_capture_opponent_piece(current_piece, piece_index, old_piece_location_array, new_piece_location_array, possible_positions, current_player)
+    return nil if current_piece.type != '♟'
+  end
 
   # Function to display captured pieces of each player instead of displaying it as an array
   def display_captured_pieces
@@ -165,6 +175,15 @@ class Game
   def valid_new_position?(possible_positions, new_piece_location)
     possible_positions.each do |position|
       return true if position == new_piece_location
+    end
+  end
+
+  def piece_infront_pawn?(starting_position, ending_position)
+    if starting_position[0] < ending_position[0]
+      while starting_position[0] != ending_position[0]
+        starting_position[0] += 1
+        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
+      end
     end
   end
 
@@ -224,4 +243,4 @@ end
 test = Game.new
 test.setup
 # p test.current_player_piece
-test.play('Player 1')
+p test.play('Player 1')
