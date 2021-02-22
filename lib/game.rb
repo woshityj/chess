@@ -100,7 +100,7 @@ class Game
         return display_captured_pieces()
       end
     end
-    
+
     if piece_type_string == 'Pawn'
       if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true && piece_exists_diagonally?(old_piece_location, new_piece_location_array) == true
         capture_opponent_piece(piece, index, old_piece_location, new_piece_location_array, player)
@@ -215,7 +215,7 @@ class Game
     temporary_piece_starting_position_array = starting_position.clone
     if temporary_piece_starting_position_array[0] < ending_position[0]
       while temporary_piece_starting_position_array[0] != ending_position[0]
-      temporary_piece_starting_position_array[0] += 1
+        temporary_piece_starting_position_array[0] += 1
         return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
       end
     end
@@ -226,28 +226,32 @@ class Game
     # Creates another copy of the piece's current location array
     temporary_piece_starting_position_array = starting_position.clone
 
-    # If the Rook is moved upwards, check every position upwards from the Rook's old location till the Rook's new location
+    # If the Rook is moved upwards, check every position upwards from
+    # the Rook's old location till the Rook's new location
     if temporary_piece_starting_position_array[0] < ending_position[0]
       while temporary_piece_starting_position_array[0] != ending_position[0]
         temporary_piece_starting_position_array[0] += 1
         return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
       end
-    
-    # If the Rook is moved downwards, check every position downwards from the Rook's old location till the Rook's new location
+
+    # If the Rook is moved downwards, check every position downwards from
+    # the Rook's old location till the Rook's new location
     elsif temporary_piece_starting_position_array[0] > ending_position[0]
       while temporary_piece_starting_position_array[0] != ending_position[0]
         temporary_piece_starting_position_array[0] -= 1
         return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
       end
-    
-    # If the Rook is moved to the right, check every position towards the right from the Rook's old location till the Rook's new location
+
+    # If the Rook is moved to the right, check every position towards the right from
+    # the Rook's old location till the Rook's new location
     elsif temporary_piece_starting_position_array[1] < ending_position[1]
       while temporary_piece_starting_position_array[1] != ending_position[1]
         temporary_piece_starting_position_array[1] += 1
         return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
       end
 
-    # If the Rook is moved to the left, check every position towards the left from the Rook's old location till the Rook's new location
+    # If the Rook is moved to the left, check every position towards the left from
+    # the Rook's old location till the Rook's new location
     elsif temporary_piece_starting_position_array[1] > ending_position[1]
       while temporary_piece_starting_position_array[1] != ending_position[1]
         temporary_piece_starting_position_array[1] -= 1
@@ -257,54 +261,29 @@ class Game
   end
 
   def piece_in_between_bishop?(starting_position, ending_position)
-    if starting_position[0] < ending_position[0] && starting_position[1] > ending_position[1]
-      until starting_position[0] == ending_position[0] && starting_position[1] == ending_position[1]
-        starting_position[0] += 1
-        starting_position[1] -= 1
-        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
-      end 
-    elsif starting_position[0] < ending_position[0] && starting_position[1] < ending_position[1]
-      until starting_position[0] == ending_position[0] && starting_position[1] == ending_position[1]
-        starting_position[0] += 1
-        starting_position[1] += 1
-        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
-      end
-    elsif starting_position[0] > ending_position[0] && starting_position[1] > ending_position[1]
-      until starting_position[0] == ending_position[0] && starting_position[1] == ending_position[1]
-        starting_position[0] -= 1
-        starting_position[1] -= 1
-        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
-      end
-    elsif starting_position[0] > ending_position[0] && starting_position[1] < ending_position[1]
-      until starting_position[0] == ending_position[0] && starting_position[1] == ending_position[1]
-        starting_position[0] -= 1
-        starting_position[1] += 1
-        return true if @board.board[starting_position[0]][starting_position[1]] != ' '
-      end
-    end
-  end
-
-  def piece_in_between_bishop?(starting_position, ending_position)
     # Creates another copy of the piece's current location array
     temporary_piece_starting_position_array = starting_position.clone
 
-    # If the Bishop is moved upwards diagonally towards the left, check every position upwards diagonally towards the left from the Bishop's old location till the Bishop's new location
+    # If the Bishop is moved upwards diagonally towards the left, check every position upwards diagonally towards
+    # the left from the Bishop's old location till the Bishop's new location
     if temporary_piece_starting_position_array[0] < ending_position[0] && temporary_piece_starting_position_array[1] > ending_position[1]
       until temporary_piece_starting_position_array[0] == ending_position[0] && temporary_piece_starting_position_array[1] == ending_position[1]
         temporary_piece_starting_position_array[0] += 1
         temporary_piece_starting_position_array[1] -= 1
         return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
       end
- 
-    # If the Bishop is moved upwards diagonally towards the right, check every position upwards diagonally towards the right from the Bishop's old location till the Bishop's new location      
+
+    # If the Bishop is moved upwards diagonally towards the right, check every position upwards diagonally towards
+    # the right from the Bishop's old location till the Bishop's new location      
     elsif temporary_piece_starting_position_array[0] < ending_position[0] && temporary_piece_starting_position_array[1] < ending_position[1]
       until temporary_piece_starting_position_array[0] == ending_position[0] && temporary_piece_starting_position_array[1] == ending_position[1]
         temporary_piece_starting_position_array[0] += 1
         temporary_piece_starting_position_array[1] += 1
         return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
       end
-    
-    # If the Bishop is moved downwards diagonally towards the right, check every position downwards diagonally towards the right from the Bishop's old location till the Bishop's new location
+
+    # If the Bishop is moved downwards diagonally towards the right, check every position downwards diagonally towards
+    # the right from the Bishop's old location till the Bishop's new location
     elsif temporary_piece_starting_position_array[0] > ending_position[0] && temporary_piece_starting_position_array[1] < ending_position[1]
       until temporary_piece_starting_position_array[0] == ending_position[0] && temporary_piece_starting_position_array[1] == ending_position[1]
         temporary_piece_starting_position_array[0] -= 1
@@ -312,7 +291,8 @@ class Game
         return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
       end
 
-    # If the Bishop is moved downwards diagonally towards the left, check every position downwards diagonally towards the left from the Bishop's old location till the Bishop's new location
+    # If the Bishop is moved downwards diagonally towards the left, check every position downwards diagonally towards
+    # the left from the Bishop's old location till the Bishop's new location
     elsif temporary_piece_starting_position_array[0] > ending_position[0] && temporary_piece_starting_position_array[1] > ending_position[1]
       until temporary_piece_starting_position_array[0] == ending_position[0] && temporary_piece_starting_position_array[1] == ending_position[1]
         temporary_piece_starting_position_array[0] -= 1
