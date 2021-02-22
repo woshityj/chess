@@ -25,6 +25,10 @@ class Game
     @board.setup_board
   end
 
+  def display_board_player2
+    @board.display_board_player2
+  end
+
   def current_player
     @turn_counter % 2 == 0 ? 'Player 1' : 'Player 2'
   end
@@ -67,9 +71,11 @@ class Game
     piece_type_string = PIECE_TYPES_STRING[piece.type]
 
     if piece_type_string == 'Pawn'
-      if piece_infront_pawn?(old_piece_location, new_piece_location_array) == true
-        puts 'Position infront of Pawn is occupied'
-        return play(player)
+      if old_piece_location[1] == new_piece_location_array[1]
+        if piece_infront_pawn?(old_piece_location, new_piece_location_array) == true
+          puts 'Position infront of Pawn is occupied'
+          return play(player)
+        end
       end
     end
 
@@ -89,6 +95,14 @@ class Game
 
     if piece_type_string != 'Pawn'
       if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true
+        capture_opponent_piece(piece, index, old_piece_location, new_piece_location_array, player)
+        @board.display_board
+        return display_captured_pieces()
+      end
+    end
+    
+    if piece_type_string == 'Pawn'
+      if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true && piece_exists_diagonally?(old_piece_location, new_piece_location_array) == true
         capture_opponent_piece(piece, index, old_piece_location, new_piece_location_array, player)
         @board.display_board
         return display_captured_pieces()
@@ -136,8 +150,26 @@ class Game
     end
   end
 
-  def pawn_capture_opponent_piece(current_piece, piece_index, old_piece_location_array, new_piece_location_array, possible_positions, current_player)
-    return nil if current_piece.type != '♟'
+  # Function to allow Pawns to Capture other Pieces
+  def piece_exists_diagonally?(current_location, new_location)
+    # Create a duplicate copy of the Current Location
+    copy_of_current_location = current_location.clone
+
+    # Create a duplicate copy of the New Location
+    copy_of_new_location = new_location.clone
+
+    # Check if the New Location is directly Diagonal of the Current Location
+    if copy_of_current_location[0] + 1 == copy_of_new_location[0] && copy_of_current_location[1] - 1 == copy_of_new_location[1]
+      puts copy_of_current_location[0]
+      puts copy_of_current_location[1]
+      return true if @board.board[copy_of_current_location[0] + 1][copy_of_current_location[1] - 1] != ' '
+    end
+
+    if copy_of_current_location[0] + 1 == copy_of_new_location[0] && copy_of_current_location[1] + 1 == copy_of_new_location[1]
+      puts copy_of_current_location[0]
+      puts copy_of_current_location[1]
+      return true if @board.board[copy_of_current_location[0] + 1][copy_of_current_location[1] + 1] != ' '
+    end
   end
 
   # Function to display captured pieces of each player instead of displaying it as an array
@@ -223,8 +255,6 @@ class Game
       end
     end
   end
-
-  # To fix
 
   def piece_in_between_bishop?(starting_position, ending_position)
     if starting_position[0] < ending_position[0] && starting_position[1] > ending_position[1]

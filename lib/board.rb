@@ -35,6 +35,20 @@ class Board
     end
   end
 
+  def display_board_player2
+    count = @board[0].length
+    i = 0
+    until i == count
+      row = ' '
+      @board[i].each do |piece|
+        row << (piece)
+        row << (' | ')
+      end
+      i += 1
+      puts row
+    end
+  end
+
   def setup_board
     setup_pawns
     setup_rook
