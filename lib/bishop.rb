@@ -26,6 +26,3 @@ class Bishop
     possible_positions
   end
 end
-
-test = Bishop.new([3, 3], 0, 'white')
-p test.possible_positions

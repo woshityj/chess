@@ -14,6 +14,16 @@ class Board
     @player2 = []
   end
 
+  def setup_board
+    setup_pawns
+    setup_rook
+    setup_knight
+    setup_bishop
+    setup_queen
+    setup_king
+    display_board_player1
+  end
+
   def create_board
     board = []
     8.times do
@@ -22,10 +32,11 @@ class Board
     board
   end
 
-  def display_board
+  def display_board_player1
     count = @board[0].length - 1
     until count.negative?
       row = ' '
+      row << ("#{count + 1} ")
       @board[count].each do |piece|
         row << (piece)
         row << (' | ')
@@ -33,6 +44,7 @@ class Board
       count -= 1
       puts row
     end
+    puts '   a | b | c | d | e | f | g | h |'
   end
 
   def display_board_player2
@@ -40,6 +52,7 @@ class Board
     i = 0
     until i == count
       row = ' '
+      row << ("#{count + 1} ")
       @board[i].each do |piece|
         row << (piece)
         row << (' | ')
@@ -47,21 +60,14 @@ class Board
       i += 1
       puts row
     end
+    puts '   a | b | c | d | e | f | g | h |'
   end
 
-  def setup_board
-    setup_pawns
-    setup_rook
-    setup_knight
-    setup_bishop
-    setup_queen
-    setup_king
-    display_board
-  end
+  # ------------------------------ Functions to Setup Pieces on Board ------------------------------ #
 
   def setup_pawns
     column = 0
-    until @board[1].all? && @board[2].all? { |location| location == '♟' }
+    until @board[1].all? && @board[6].all? { |location| location == '♟' }
       white_pawn_location = [1, column]
       white_pawn = Pawn.new(white_pawn_location, column, 'white')
       @board[1][column] = '♟'
@@ -69,7 +75,7 @@ class Board
 
       black_pawn_location = [2, column]
       black_pawn = Pawn.new(black_pawn_location, column, 'black')
-      @board[2][column] = '♟'
+      @board[6][column] = '♟'
       @player2.append(black_pawn)
 
       column += 1
@@ -157,6 +163,8 @@ class Board
       @player2.append(black_king)
     end
   end
+
+  # ------------------------------ Functions to Determine if Location on Board is Occupied by the Same Team or Opponent ------------------------------ #
 
   def position_occupied_by_same_team?(current_player, new_piece_location)
     if current_player == 'Player 1'

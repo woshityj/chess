@@ -11,6 +11,17 @@ class Game
     '♚' => 'King'
   }
 
+  BOARD_COLUMN_ALPHABET_TO_INTEGER = {
+    'a' => 1,
+    'b' => 2,
+    'c' => 3,
+    'd' => 4,
+    'e' => 5,
+    'f' => 6,
+    'g' => 7,
+    'h' => 8
+  }
+
   def initialize
     @board = Board.new
     @turn_counter = 0
@@ -29,13 +40,20 @@ class Game
     @board.display_board_player2
   end
 
+  def start_game
+    until @turn_counter == 50
+      current_player_string = current_player()
+      play(current_player_string)
+      @turn_counter += 1
+    end
+  end
+
   def current_player
     @turn_counter % 2 == 0 ? 'Player 1' : 'Player 2'
   end
 
   # Get Piece the User would like to move
   def play(player)
-
     puts 'Enter the row and column of the unit you would like to move'
     # Gets the Row and Column of the Unit that the Player would like to move
     # Append the Row and Column of the Unit into an Array
@@ -93,10 +111,17 @@ class Game
       end
     end
 
+    if piece_type_string == 'Queen'
+      if piece_in_between_queen?(old_piece_location, new_piece_location_array) == true
+        puts 'Position between Queen is occupied'
+        return play(player)
+      end
+    end
+
     if piece_type_string != 'Pawn'
       if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true
         capture_opponent_piece(piece, index, old_piece_location, new_piece_location_array, player)
-        @board.display_board
+        @board.display_board_player1
         return display_captured_pieces()
       end
     end
@@ -104,7 +129,7 @@ class Game
     if piece_type_string == 'Pawn'
       if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true && piece_exists_diagonally?(old_piece_location, new_piece_location_array) == true
         capture_opponent_piece(piece, index, old_piece_location, new_piece_location_array, player)
-        @board.display_board
+        @board.display_board_player1
         return display_captured_pieces()
       end
     end
@@ -113,7 +138,7 @@ class Game
     puts @board.board[new_piece_location_array[0]][new_piece_location_array[1]]
     if @board.board[new_piece_location_array[0]][new_piece_location_array[1]] == ' '
       move_piece(piece, index, old_piece_location, new_piece_location_array, player)
-      @board.display_board
+      @board.display_board_player1
       return display_captured_pieces()
     end
   end
@@ -194,9 +219,25 @@ class Game
 
   # Function to get Row and Column from User and convert it to an array
   def user_row_column_input
-    row_column_input = gets.chomp
 
-    row_column_input.to_s.split('').map(&:to_i)
+    column_row_input = gets.chomp
+
+    column_row_input_array = column_row_input.to_s.split('')
+
+    column_integer = BOARD_COLUMN_ALPHABET_TO_INTEGER[column_row_input_array[0]]
+
+    column_row_input_array.shift
+
+    column_row_input_array.append(column_integer)
+
+    column_row_input_array = column_row_input_array.map(&:to_i)
+
+    column_row_input_array[0] -= 1
+
+    column_row_input_array[1] -= 1
+
+    column_row_input_array
+
   end
 
   # User Input Validation Functions
@@ -301,9 +342,85 @@ class Game
       end
     end
   end
+
+  def piece_in_between_queen?(starting_position, ending_position)
+    temporary_piece_starting_position_array = starting_position.clone
+
+    # If the Queen is moved upwards diagonally towards the left, check every position upwards diagonally towards
+    # the left from the Queen's old location till the Queen's new location
+    if temporary_piece_starting_position_array[0] < ending_position[0] && temporary_piece_starting_position_array[1] > ending_position[1]
+      until temporary_piece_starting_position_array[0] == ending_position[0] && temporary_piece_starting_position_array[1] == ending_position[1]
+        temporary_piece_starting_position_array[0] += 1
+        temporary_piece_starting_position_array[1] -= 1
+        return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
+      end
+
+    # If the Queen is moved upwards diagonally towards the right, check every position upwards diagonally towards
+    # the right from the Queen's old location till the Queen's new location
+    elsif temporary_piece_starting_position_array[0] < ending_position[0] && temporary_piece_starting_position_array[1] < ending_position[1]
+      until temporary_piece_starting_position_array[0] == ending_position[0] && temporary_piece_starting_position_array[1] == ending_position[1]
+        temporary_piece_starting_position_array[0] += 1
+        temporary_piece_starting_position_array[1] += 1
+        return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
+      end
+
+    # If the Queen is moved downwards diagonally towards the right, check every position downwards diagonally towards
+    # the right from the Queen's old location till the Queen's new location
+    elsif temporary_piece_starting_position_array[0] > ending_position[0] && temporary_piece_starting_position_array[1] < ending_position[1]
+      until temporary_piece_starting_position_array[0] == ending_position[0] && temporary_piece_starting_position_array[1] == ending_position[1]
+        temporary_piece_starting_position_array[0] -= 1
+        temporary_piece_starting_position_array[1] += 1
+        return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
+      end
+
+    # If the Queen is moved downwards diagonally towards the left, check every position downwards diagonally towards
+    # the left from the Queen's old location till the Queen's new location
+    elsif temporary_piece_starting_position_array[0] > ending_position[0] && temporary_piece_starting_position_array[1] > ending_position[1]
+      until temporary_piece_starting_position_array[0] == ending_position[0] && temporary_piece_starting_position_array[1] == ending_position[1]
+        temporary_piece_starting_position_array[0] -= 1
+        temporary_piece_starting_position_array[1] -= 1
+        return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
+      end
+
+    elsif temporary_piece_starting_position_array[0] < ending_position[0] && temporary_piece_starting_array[1] == ending_position[1]
+      while temporary_piece_starting_position_array[0] != ending_position[0]
+        temporary_piece_starting_position_array[0] -= 1
+        return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
+      end
+
+    elsif temporary_piece_starting_position_array[0] > ending_position[0] && temporary_piece_starting_position_array[1] == ending_position[1]
+      while temporary_piece_starting_position_array[1] != ending_position[1]
+        temporary_piece_starting_position_array[1] += 1
+        return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
+      end
+
+    elsif temporary_piece_starting_position_array[1] < ending_position[1] && temporary_piece_starting_position_array[0] == ending_position[0]
+      while temporary_piece_starting_position_array[1] != ending_position[1]
+        temporary_piece_starting_position_array[1] += 1
+        return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
+      end
+
+    elsif temporary_piece_starting_position_array[1] > ending_position[1] && temporary_piece_starting_position_array[0] == ending_position[0]
+      while temporary_piece_starting_position_array[1] != ending_position[1]
+        temporary_piece_starting_position_array[1] -= 1
+        return true if @board.board[temporary_piece_starting_position_array[0]][temporary_piece_starting_position_array[1]] != ' '
+      end
+    end
+  end
+
+  # Winning Conditions
+
+  def check?(player, possible_positions)
+  end
+
+  def checkmate
+
+  end
+
 end
 
 test = Game.new
-test.setup
+p test.user_row_column_input
+# test.setup
 # p test.current_player_piece
-p test.play('Player 1')
+# test.start_game
