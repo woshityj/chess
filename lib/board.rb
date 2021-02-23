@@ -73,7 +73,7 @@ class Board
       @board[1][column] = '♟'
       @player1.append(white_pawn)
 
-      black_pawn_location = [2, column]
+      black_pawn_location = [6, column]
       black_pawn = Pawn.new(black_pawn_location, column, 'black')
       @board[6][column] = '♟'
       @player2.append(black_pawn)

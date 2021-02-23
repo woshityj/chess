@@ -24,7 +24,7 @@ class Game
 
   def initialize
     @board = Board.new
-    @turn_counter = 0
+    @turn_counter = 1
     @player1_pieces_captured = []
     @player2_pieces_captured = []
     @player1_scores = 0
@@ -43,7 +43,7 @@ class Game
   def start_game
     until @turn_counter == 50
       current_player_string = current_player()
-      play(current_player_string)
+      play('Player 2')
       @turn_counter += 1
     end
   end
@@ -59,11 +59,17 @@ class Game
     # Append the Row and Column of the Unit into an Array
     piece_location_array = user_row_column_input()
 
+    if valid_player_piece?(piece_location_array) != true
+      puts 'Invalid Piece Selected, you have selected an Opponent Piece'
+      return play(player)
+    end
+    
     # Based off the Row and Column of the Unit, find if the unit exists and return the unit
     if player == 'Player 1'
       index = @board.player1.find_index { |unit| unit.location == piece_location_array }
       piece = @board.player1[index]
-    else
+    end
+    if player == 'Player 2'
       index = @board.player2.find_index { |unit| unit.location == piece_location_array }
       piece = @board.player2[index]
     end
@@ -408,6 +414,22 @@ class Game
     end
   end
 
+  # Prevent Player from Selecting Opponent Pieces
+  def valid_player_piece?(selected_piece_location)
+    player = current_player()
+    if player == 'Player 1'
+      @board.player1.find_index do |unit|
+        return true if unit.location == selected_piece_location
+      end
+    end
+    
+    if player == 'Player 2'
+      @board.player2.find_index do |unit|
+        return true if unit.location == selected_piece_location
+      end
+    end
+  end
+
   # Winning Conditions
 
   def check?(player, possible_positions)
@@ -420,7 +442,7 @@ class Game
 end
 
 test = Game.new
-p test.user_row_column_input
-# test.setup
+test.setup
 # p test.current_player_piece
-# test.start_game
+# p test.start_game
+p test.play('Player 2')
