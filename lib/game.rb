@@ -22,6 +22,17 @@ class Game
     'h' => 8
   }
 
+  PLAYER2_USER_INPUT_ROW_CONVERT = {
+    1 => 8,
+    2 => 7,
+    3 => 6,
+    4 => 5,
+    5 => 4,
+    6 => 3,
+    7 => 2,
+    8 => 1
+  }
+
   def initialize
     @board = Board.new
     @turn_counter = 1
@@ -31,29 +42,38 @@ class Game
     @player2_scores = 0
   end
 
-  # Public Functions
-  def setup
-    @board.setup_board
-  end
-
-  def display_board_player2
-    @board.display_board_player2
-  end
+  # ------------------------------ Public Function ------------------------------ #
 
   def start_game
     until @turn_counter == 50
       current_player_string = current_player()
-      play('Player 2')
+      player = current_player()
+      play(player)
       @turn_counter += 1
     end
+  end
+
+  # ------------------------------ Private Functions ------------------------------ #
+
+  def setup
+    @board.setup_board
   end
 
   def current_player
     @turn_counter % 2 == 0 ? 'Player 1' : 'Player 2'
   end
 
+  def display_player_board
+    player = current_player()
+    return @board.display_board_player1 if player == 'Player 1'
+    return @board.display_board_player2 if player == 'Player 2'
+  end
+
   # Get Piece the User would like to move
   def play(player)
+
+    display_player_board()
+
     puts 'Enter the row and column of the unit you would like to move'
     # Gets the Row and Column of the Unit that the Player would like to move
     # Append the Row and Column of the Unit into an Array
@@ -63,7 +83,7 @@ class Game
       puts 'Invalid Piece Selected, you have selected an Opponent Piece'
       return play(player)
     end
-    
+
     # Based off the Row and Column of the Unit, find if the unit exists and return the unit
     if player == 'Player 1'
       index = @board.player1.find_index { |unit| unit.location == piece_location_array }
@@ -127,7 +147,7 @@ class Game
     if piece_type_string != 'Pawn'
       if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true
         capture_opponent_piece(piece, index, old_piece_location, new_piece_location_array, player)
-        @board.display_board_player1
+        display_player_board()
         return display_captured_pieces()
       end
     end
@@ -135,7 +155,7 @@ class Game
     if piece_type_string == 'Pawn'
       if @board.position_occupied_by_opponent?(piece, new_piece_location_array) == true && piece_exists_diagonally?(old_piece_location, new_piece_location_array) == true
         capture_opponent_piece(piece, index, old_piece_location, new_piece_location_array, player)
-        @board.display_board_player1
+        display_player_board()
         return display_captured_pieces()
       end
     end
@@ -144,7 +164,7 @@ class Game
     puts @board.board[new_piece_location_array[0]][new_piece_location_array[1]]
     if @board.board[new_piece_location_array[0]][new_piece_location_array[1]] == ' '
       move_piece(piece, index, old_piece_location, new_piece_location_array, player)
-      @board.display_board_player1
+      display_player_board()
       return display_captured_pieces()
     end
   end
@@ -189,17 +209,25 @@ class Game
     # Create a duplicate copy of the New Location
     copy_of_new_location = new_location.clone
 
-    # Check if the New Location is directly Diagonal of the Current Location
-    if copy_of_current_location[0] + 1 == copy_of_new_location[0] && copy_of_current_location[1] - 1 == copy_of_new_location[1]
-      puts copy_of_current_location[0]
-      puts copy_of_current_location[1]
-      return true if @board.board[copy_of_current_location[0] + 1][copy_of_current_location[1] - 1] != ' '
+    if current_player() == 'Player 1'
+      # Check if the New Location is directly Diagonal of the Current Location
+      if copy_of_current_location[0] + 1 == copy_of_new_location[0] && copy_of_current_location[1] - 1 == copy_of_new_location[1]
+        return true if @board.board[copy_of_current_location[0] + 1][copy_of_current_location[1] - 1] != ' '
+      end
+
+      if copy_of_current_location[0] + 1 == copy_of_new_location[0] && copy_of_current_location[1] + 1 == copy_of_new_location[1]
+        return true if @board.board[copy_of_current_location[0] + 1][copy_of_current_location[1] + 1] != ' '
+      end
     end
 
-    if copy_of_current_location[0] + 1 == copy_of_new_location[0] && copy_of_current_location[1] + 1 == copy_of_new_location[1]
-      puts copy_of_current_location[0]
-      puts copy_of_current_location[1]
-      return true if @board.board[copy_of_current_location[0] + 1][copy_of_current_location[1] + 1] != ' '
+    if current_player() == 'Player 2'
+      if copy_of_current_location[0] - 1 == copy_of_new_location[0] && copy_of_current_location[1] - 1 == copy_of_new_location[1]
+        return true if @board.board[copy_of_current_location[0] - 1][copy_of_current_location[1] - 1] != ' '
+      end
+
+      if copy_of_current_location[0] - 1 == copy_of_new_location[0] && copy_of_current_location[1] + 1 == copy_of_new_location[1]
+        return true if @board.board[copy_of_current_location[0] - 1][copy_of_current_location[1] + 1] != ' '
+      end
     end
   end
 
@@ -231,6 +259,13 @@ class Game
     column_row_input_array = column_row_input.to_s.split('')
 
     column_integer = BOARD_COLUMN_ALPHABET_TO_INTEGER[column_row_input_array[0]]
+
+    if current_player() == 'Player 2'
+      player2_row_integer = column_row_input_array[1].to_i
+      player2_converted_row_integer = player2_user_input_row_convertor(player2_row_integer)
+      column_row_input_array.pop()
+      column_row_input_array.append(player2_converted_row_integer)
+    end
 
     column_row_input_array.shift
 
@@ -422,12 +457,19 @@ class Game
         return true if unit.location == selected_piece_location
       end
     end
-    
+
     if player == 'Player 2'
       @board.player2.find_index do |unit|
         return true if unit.location == selected_piece_location
       end
     end
+  end
+
+  # ------------------------------ Function to convert Player 2's selected Row ------------------------------ #
+
+  def player2_user_input_row_convertor(player2_row)
+    converted_row = PLAYER2_USER_INPUT_ROW_CONVERT[player2_row]
+    return converted_row
   end
 
   # Winning Conditions
@@ -445,4 +487,4 @@ test = Game.new
 test.setup
 # p test.current_player_piece
 # p test.start_game
-p test.play('Player 2')
+p test.start_game

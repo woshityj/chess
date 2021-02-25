@@ -49,15 +49,17 @@ class Board
 
   def display_board_player2
     count = @board[0].length
+    row_display = count.clone
     i = 0
     until i == count
       row = ' '
-      row << ("#{count + 1} ")
+      row << ("#{row_display} ")
       @board[i].each do |piece|
         row << (piece)
         row << (' | ')
       end
       i += 1
+      row_display -= 1
       puts row
     end
     puts '   a | b | c | d | e | f | g | h |'
