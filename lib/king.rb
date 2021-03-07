@@ -1,9 +1,8 @@
 class King
-  attr_accessor :location, :king_number, :team, :type
+  attr_accessor :location, :team, :type
 
-  def initialize(location, king_number, team)
+  def initialize(location, team)
     @location = location
-    @king_number = king_number
     @team = team
     @type = '♚'
   end

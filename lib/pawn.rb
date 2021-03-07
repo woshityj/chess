@@ -1,11 +1,10 @@
 class Pawn
-  attr_accessor :moved, :location, :type, :pawn_number, :team, :points
+  attr_accessor :moved, :location, :type, :team, :points
 
-  def initialize(location, pawn_number, team)
+  def initialize(location, team)
     @moved = false
     @location = location
     @type = '♟'
-    @pawn_number = pawn_number
     @team = team
     @points = 1
   end
@@ -14,9 +13,17 @@ class Pawn
     possible_positions = []
     x_move = [1, 2]
     current_location = @location
-    x_move.each do |x|
-      new_location = current_location[0] + x
-      possible_positions << [new_location, current_location[1]]
+    if @team == 'White'
+      x_move.each do |x|
+        new_location = current_location[0] + x
+        possible_positions << [new_location, current_location[1]]
+      end
+    end
+    if @team == 'Black'
+      x_move.each do |x|
+        new_location = current_location[0] - x
+        possible_positions << [new_location, current_location[1]]
+      end
     end
     possible_positions
   end

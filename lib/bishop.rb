@@ -1,9 +1,8 @@
 class Bishop
-  attr_accessor :location, :bishop_number, :team, :type, :points
+  attr_accessor :location, :team, :type, :points
 
-  def initialize(location, bishop_number, team)
+  def initialize(location, team)
     @location = location
-    @bishop_number = bishop_number
     @team = team
     @type = '♝'
     @points = 3

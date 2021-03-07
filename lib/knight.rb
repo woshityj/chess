@@ -1,9 +1,8 @@
 class Knight
-  attr_accessor :location, :knight_number, :team, :knight, :points
+  attr_accessor :location, :team, :type, :points
 
-  def initialize(location, knight_number, team)
+  def initialize(location, team)
     @location = location
-    @knight_number = knight_number
     @team = team
     @type = '♞'
     @points = 3
