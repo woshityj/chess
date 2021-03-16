@@ -160,9 +160,9 @@ class NewBoard
 	end
 
 	def setup_queens
-		white_queen_location = [0, 3]
+		white_queen_location = [2, 4]
 		white_queen = Queen.new(white_queen_location, 'White')
-		@board[0][3] = '♛'.white
+		@board[2][4] = '♛'.white
 		@white_player.append(white_queen)
 
 		black_queen_location = [7, 3]
@@ -177,9 +177,9 @@ class NewBoard
 		@board[0][4] = '♚'.white
 		@white_player.append(white_king)
 
-		black_king_location = [7, 4]
+		black_king_location = [5, 4]
 		black_king = King.new(black_king_location, 'Black')
-		@board[7][4] = '♚'.black
+		@board[5][4] = '♚'.black
 		@black_player.append(black_king)
 	end
 end
