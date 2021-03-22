@@ -96,10 +96,10 @@ class NewBoard
       @board[1][column] = '♟'.white
       @white_player.append(white_pawn)
         
-      black_pawn_location = [6, column]
-      black_pawn = Pawn.new(black_pawn_location, 'Black')
-      @board[6][column] = '♟'.black
-      @black_player.append(black_pawn)
+      # black_pawn_location = [6, column]
+      # black_pawn = Pawn.new(black_pawn_location, 'Black')
+      # @board[6][column] = '♟'.black
+      # @black_player.append(black_pawn)
 
       column += 1
     end
@@ -145,9 +145,14 @@ class NewBoard
 		column = [2, 5]
 		count = 0
 		until count == 2
-			white_bishop_location = [0, column[count]]
+			white_bishop_location = [4, column[count]]
 			white_bishop = Bishop.new(white_bishop_location, 'White')
-			@board[0][column[count]] = '♝'.white
+			@board[4][column[count]] = '♝'.white
+			@white_player.append(white_bishop)
+
+			white_bishop_location = [6, 3]
+			white_bishop = Bishop.new(white_bishop_location, 'White')
+			@board[6][3] = '♝'.white
 			@white_player.append(white_bishop)
 
 			black_bishop_location = [7, column[count]]
@@ -160,9 +165,9 @@ class NewBoard
 	end
 
 	def setup_queens
-		white_queen_location = [2, 4]
+		white_queen_location = [0, 3]
 		white_queen = Queen.new(white_queen_location, 'White')
-		@board[2][4] = '♛'.white
+		@board[0][3] = '♛'.white
 		@white_player.append(white_queen)
 
 		black_queen_location = [7, 3]
@@ -177,9 +182,9 @@ class NewBoard
 		@board[0][4] = '♚'.white
 		@white_player.append(white_king)
 
-		black_king_location = [5, 4]
+		black_king_location = [7, 4]
 		black_king = King.new(black_king_location, 'Black')
-		@board[5][4] = '♚'.black
+		@board[7][4] = '♚'.black
 		@black_player.append(black_king)
 	end
 end
