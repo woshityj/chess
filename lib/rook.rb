@@ -1,8 +1,9 @@
 
 class Rook
-  attr_accessor :location, :team, :type, :points
+  attr_accessor :moved, :location, :team, :type, :points
 
   def initialize(location, team)
+    @moved = false
     @location = location
     @team = team
     @type = '♜'

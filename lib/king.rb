@@ -1,7 +1,8 @@
 class King
-  attr_accessor :location, :team, :type
+  attr_accessor :moved, :location, :team, :type
 
   def initialize(location, team)
+    @moved = false
     @location = location
     @team = team
     @type = '♚'

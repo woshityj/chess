@@ -1,5 +1,9 @@
 require 'colorize'
 
+require_relative 'rook'
+require_relative 'knight'
+require_relative 'bishop'
+require_relative 'queen'
 require_relative 'new_board'
 
 class NewGame
@@ -61,7 +65,7 @@ class NewGame
 
   def two_player_game
     @board.setup_board
-    until @king_checkmated ==  true
+    until @king_checkmated ==  true || two_kings_draw?() == true
       puts "\e[2]"
       player_turn()
       @turn_count += 1
@@ -80,8 +84,11 @@ class NewGame
     coordinates = get_coordinates()
 
     selected_piece = get_selected_piece(coordinates)
-
-    p selected_piece.team
+    
+    if selected_piece == nil
+      puts 'Invalid Coordinates Entered. Please Try Again.'
+      return player_turn
+    end
     
     display_legal_moves(selected_piece)
 
@@ -94,8 +101,51 @@ class NewGame
     if new_coordinates_occupied_by_opponent?(new_coordinates) == true
       capture_opponent_piece(selected_piece, new_coordinates)
     end
+
     
-    move_piece(selected_piece, new_coordinates)
+    if selected_piece.type == '♚' && selected_piece.moved == false
+      if selected_piece.team == 'White'
+        white_piece_index = @board.white_player.find_index { |white_piece| white_piece.location == new_coordinates }
+        if white_piece_index != nil
+          white_piece = @board.white_player[white_piece_index]
+          if white_piece.type == '♜' && white_piece.moved == false
+            if check_if_possible_to_castle?(selected_piece, new_coordinates) == true
+              castling_move_pieces(selected_piece, new_coordinates)
+            end
+          end
+        end
+      elsif selected_piece.team == 'Black'
+        black_piece_index = @board.black_player.find_index { |black_piece| black_piece.location == new_coordinates }
+        if black_piece_index != nil
+          black_piece = @board.black_player[black_piece_index]
+          if black_piece.type == '♜' && black_piece.moved == false
+            if check_if_possible_to_castle?(selected_piece, new_coordinates) == true
+              castling_move_pieces(selected_piece, new_coordinates)
+            end
+          end
+        end
+      end
+    else
+      move_piece(selected_piece, new_coordinates)
+    end
+    
+    if selected_piece.type == '♟' && selected_piece.moved == false
+      selected_piece.moved = true
+    end
+
+    if selected_piece.type == '♚' && selected_piece.moved == false
+      selected_piece.moved = true
+    end
+
+    if selected_piece.type == '♜' && selected_piece.moved == false
+      selected_piece.moved == true
+    end
+
+    if selected_piece.type == '♟'
+      if pawn_promotable?(selected_piece) == true
+        pawn_promotion(selected_piece)
+      end
+    end
 
     if king_is_checked?() == true
       puts 'King is Checked'
@@ -149,6 +199,13 @@ class NewGame
       end
     end
 
+    if selected_piece.type == '♚' && king_possible_castling_coordinates(selected_piece).empty? != true
+      castling_coordinates = king_possible_castling_coordinates(selected_piece)
+      castling_coordinates.each do |castable_coordinates|
+        legal_moves.append(castable_coordinates)
+      end
+    end
+
     legal_moves.each do |legal_coordinates|
       if selected_piece.type == '♟'
         occupied_coordinates = piece_infront_pawn(selected_piece)
@@ -195,6 +252,9 @@ class NewGame
       diagonal_opponent_pieces_coordinates.each do |capturable_opponent_coordinates|
         legal_moves.append(capturable_opponent_coordinates)
       end
+    end
+
+    if selected_piece.type == '♟'
       if piece_infront_pawn(selected_piece).empty? != true
         occupied_coordinates = piece_infront_pawn(selected_piece)
         legal_moves = legal_moves - occupied_coordinates
@@ -233,6 +293,15 @@ class NewGame
       end
     end
 
+    if selected_piece.type == '♚'
+      if king_possible_castling_coordinates(selected_piece).empty? != true
+        castabling_coordinates = king_possible_castling_coordinates(selected_piece)
+        castabling_coordinates.each do |castable_coordinates|
+          legal_moves.append(castable_coordiantes)
+        end
+      end
+    end
+
     legal_moves.each do |legal_coordinates|
       return true if legal_coordinates == new_coordinates
     end
@@ -259,10 +328,12 @@ class NewGame
     if current_player() == 'White'
       index = @board.white_player.find_index { |unit| unit.location == coordinates }
       return @board.white_player[index] if index != nil
+      return nil if index == nil
     end
     if current_player() == 'Black'
       index = @board.black_player.find_index { |unit| unit.location == coordinates }
       return @board.black_player[index] if index != nil
+      return nil if index == nil
     end
   end
 
@@ -334,10 +405,16 @@ class NewGame
         two_step_forward_coordinates = copy_of_current_coordinates[0] + 2
         if @board.board[one_step_forward_coordinates][copy_of_current_coordinates[1]] != ' '
           occupied_coordinates.append([one_step_forward_coordinates, copy_of_current_coordinates[1]])
-          occupied_coordinates.append([two_step_forward_coordinates, copy_of_current_coordinates[1]])
         end
         if @board.board[two_step_forward_coordinates][copy_of_current_coordinates[1]] != ' '
           occupied_coordinates.append([two_step_forward_coordinates, copy_of_current_coordinates[1]])
+        end
+      end
+
+      if selected_piece.moved == true
+        one_step_forward_coordinates = copy_of_current_coordinates[0] + 1
+        if @board.board[one_step_forward_coordinates][copy_of_current_coordinates[1]] != ' '
+          occupied_coordinates.append([one_step_forward_coordinates, copy_of_current_coordinates[1]])
         end
       end
     end
@@ -348,10 +425,16 @@ class NewGame
         two_step_forward_coordinates = copy_of_current_coordinates[0] - 2
         if @board.board[one_step_forward_coordinates][copy_of_current_coordinates[1]] != ' '
           occupied_coordinates.append([one_step_forward_coordinates, copy_of_current_coordinates[1]])
-          occupied_coordinates.append([two_step_forward_coordinates, copy_of_current_coordinates[1]])
         end
         if @board.board[two_step_forward_coordinates][copy_of_current_coordinates[1]] != ' '
           occupied_coordinates.append([two_step_forward_coordinates, copy_of_current_coordinates[1]])
+        end
+      end
+      
+      if selected_piece.moved == true
+        one_step_forward_coordinates = copy_of_current_coordinates[0] - 1
+        if @board.board[one_step_forward_coordinates][copy_of_current_coordinates[1]] != ' '
+          occupied_coordinates.append([one_step_forward_coordinates, copy_of_current_coordinates[1]])
         end
       end
     end
@@ -477,9 +560,9 @@ class NewGame
       until temporary_copy_of_current_coordinates_three[1] == 7
         temporary_copy_of_current_coordinates_three[1] += 1
         if @board.board[temporary_copy_of_current_coordinates_three[0]][temporary_copy_of_current_coordinates_three[1]] != ' '
+          black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_three[0], temporary_copy_of_current_coordinates_three[1]] }
+          white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_three[0], temporary_copy_of_current_coordinates_three[1]] }
           if selected_piece.team == 'White'
-            black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_three[0], temporary_copy_of_current_coordinates_three[1]] }
-            white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_three[0], temporary_copy_of_current_coordinates_three[1]] }
             if black_index != nil
               temporary_copy_of_current_coordinates_three[1] += 1
             end
@@ -505,9 +588,9 @@ class NewGame
       while temporary_copy_of_current_coordinates_four[1] > -1
         temporary_copy_of_current_coordinates_four[1] -= 1
         if @board.board[temporary_copy_of_current_coordinates_four[0]][temporary_copy_of_current_coordinates_four[1]] != ' '
+          black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_four[0], temporary_copy_of_current_coordinates_four[1]] }
+          white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_four[0], temporary_copy_of_current_coordinates_four[1]] }
           if selected_piece.team == 'White'
-            black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_four[0], temporary_copy_of_current_coordinates_four[1]] }
-            white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_four[0], temporary_copy_of_current_coordinates_four[1]] }
             if black_index != nil
               temporary_copy_of_current_coordinates_four[1] -= 1
             end
@@ -534,9 +617,9 @@ class NewGame
     occupied_coordinates = []
     copy_of_current_coordinates = selected_piece.location.clone
 
-    if copy_of_current_coordinates[0] < 7 && copy_of_current_coordinates[1] > -1
+    if copy_of_current_coordinates[0] < 7 && copy_of_current_coordinates[1] >= 0
       temporary_copy_of_current_coordinates_one = copy_of_current_coordinates.clone
-      while temporary_copy_of_current_coordinates_one[0] < 7 && temporary_copy_of_current_coordinates_one[1] > -1
+      while temporary_copy_of_current_coordinates_one[0] < 7 && temporary_copy_of_current_coordinates_one[1] >= 0
         temporary_copy_of_current_coordinates_one[0] += 1
         temporary_copy_of_current_coordinates_one[1] -= 1
         if @board.board[temporary_copy_of_current_coordinates_one[0]][temporary_copy_of_current_coordinates_one[1]] != ' '
@@ -570,9 +653,9 @@ class NewGame
         temporary_copy_of_current_coordinates_two[0] += 1
         temporary_copy_of_current_coordinates_two[1] += 1
         if @board.board[temporary_copy_of_current_coordinates_two[0]][temporary_copy_of_current_coordinates_two[1]] != ' '
+          black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_two[0], temporary_copy_of_current_coordinates_two[1]] }
+          white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_two[0], temporary_copy_of_current_coordinates_two[1]] }
           if selected_piece.team == 'White'
-            black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_two[0], temporary_copy_of_current_coordinates_two[1]] }
-            white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_two[0], temporary_copy_of_current_coordinates_two[1]] }
             if black_index != nil
               temporary_copy_of_current_coordinates_two[0] += 1
               temporary_copy_of_current_coordinates_two[1] += 1
@@ -599,10 +682,11 @@ class NewGame
       while temporary_copy_of_current_coordinates_three[0] > -1 && temporary_copy_of_current_coordinates_three[1] > -1
         temporary_copy_of_current_coordinates_three[0] -= 1
         temporary_copy_of_current_coordinates_three[1] -= 1
+        p temporary_copy_of_current_coordinates_three
         if @board.board[temporary_copy_of_current_coordinates_three[0]][temporary_copy_of_current_coordinates_three[1]] != ' '
+          black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_three[0], temporary_copy_of_current_coordinates_three[1]] }
+          white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_three[0], temporary_copy_of_current_coordinates_three[1]] }
           if selected_piece.team == 'White'
-            black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_three[0], temporary_copy_of_current_coordinates_three[1]] }
-            white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_three[0], temporary_copy_of_current_coordinates_three[1]] }
             if black_index != nil
               temporary_copy_of_current_coordinates_three[0] -= 1
               temporary_copy_of_current_coordinates_three[1] -= 1
@@ -630,15 +714,15 @@ class NewGame
         temporary_copy_of_current_coordinates_four[0] -= 1
         temporary_copy_of_current_coordinates_four[1] += 1
         if @board.board[temporary_copy_of_current_coordinates_four[0]][temporary_copy_of_current_coordinates_four[1]] != ' '
+          black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_four[0], temporary_copy_of_current_coordinates_four[1]] }
+          white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_four[0], temporary_copy_of_current_coordinates_four[1]] }
           if selected_piece.team == 'White'
-            black_index = @board.black_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_four[0], temporary_copy_of_current_coordinates_four[1]] }
-            white_index = @board.white_player.find_index { |unit| unit.location == [temporary_copy_of_current_coordinates_four[0], temporary_copy_of_current_coordinates_four[1]] }
             if black_index != nil
               temporary_copy_of_current_coordinates_four[0] -= 1
               temporary_copy_of_current_coordinates_four[1] += 1
             end
           end
-          if selected_piece.type == 'Black'
+          if selected_piece.team == 'Black'
             if white_index != nil
               temporary_copy_of_current_coordinates_four[0] -= 1
               temporary_copy_of_current_coordinates_four[1] += 1
@@ -766,7 +850,7 @@ class NewGame
       white_king = @board.white_player[white_king_index]
       white_king_location = white_king.location
       @board.black_player.each do |black_piece|
-        return true if valid_new_coordinates?(black_piece, black_king_location) == true
+        return true if valid_new_coordinates?(black_piece, white_king_location) == true
       end
     end
   end
@@ -776,8 +860,10 @@ class NewGame
     # Based on the possible positions, create a list of legal moves the king is able to move to
     if current_player() == 'White'
       checked_coordinates = []
+      black_king_capturable_positions = []
       black_king_index = @board.black_player.find_index { |unit| unit.type == '♚' }
       black_king = @board.black_player[black_king_index]
+      copy_of_black_king = @board.black_player[black_king_index].clone
       black_king_possible_positions = black_king.possible_positions
       occupied_coordinates = piece_infront_king(black_king)
       occupied_coordinates.each do |occupied_coordinate|
@@ -788,10 +874,18 @@ class NewGame
       
       black_king_original_position = black_king.location.clone
 
+      black_king_possible_positions.append(black_king_original_position)
+
       black_king_possible_positions.each do |black_king_coordinates|
         @board.board[black_king_original_position[0]][black_king_original_position[1]] = ' '
         if @board.board[black_king_coordinates[0]][black_king_coordinates[1]] != ' '
-          temporary_piece = @board.board[black_king_coordinates[0]][black_king_coordinates[1]].clone
+          white_piece_index = @board.white_player.find_index { |white_piece| white_piece.location == [black_king_coordinates[0], black_king_coordinates[1]] }
+          if white_piece_index != nil
+            temporary_piece = @board.board[black_king_coordinates[0]][black_king_coordinates[1]].clone
+            black_king_capturable_positions = black_king_capturable_positions + [[black_king_coordinates[0], black_king_coordinates[1]]]
+            copy_of_white_piece = @board.white_player[white_piece_index].clone
+            @board.white_player.delete_at(white_piece_index)
+          end
           @board.board[black_king_coordinates[0]][black_king_coordinates[1]] = ' '
         end
         black_king.location = black_king_coordinates
@@ -799,10 +893,11 @@ class NewGame
         @board.white_player.each do |white_piece|
           if valid_new_coordinates?(white_piece, black_king_coordinates) == true
             checked_coordinates.append(black_king_coordinates)
-          end              
+          end
         end
         if temporary_piece != nil
           @board.board[black_king_coordinates[0]][black_king_coordinates[1]] = temporary_piece
+          @board.white_player.append(copy_of_white_piece)
         else
           @board.board[black_king_coordinates[0]][black_king_coordinates[1]] = ' '
         end
@@ -810,30 +905,62 @@ class NewGame
         black_king.location = black_king_original_position
       end
 
-      black_king_possible_positions = black_king_possible_positions - checked_coordinates
+      if black_king_capturable_positions.empty? != nil
+        black_king_capturable_positions.each do |black_king_coordinates|
+          @board.board[black_king_original_position[0]][black_king_original_position[1]] = ' '
+          temporary_piece = @board.board[black_king_coordinates[0]][black_king_coordinates[1]].clone
+          @board.board[black_king_coordinates[0]][black_king_coordinates[1]] = ' '
+          black_king.location = black_king_coordinates
+          @board.board[black_king_coordinates[0]][black_king_coordinates[1]] = black_king.type.black
+          @board.white_player.each do |white_piece|
+            if valid_new_coordinates?(white_piece, black_king_coordinates) == true
+              checked_coordinates.append(black_king_coordinates)
+            end
+          end
+          @board.board[black_king_coordinates[0]][black_king_coordinates[1]] = temporary_piece
+        end
+        @board.board[black_king_original_position[0]][black_king_original_position[1]] = black_king.type.black
+        black_king.location = black_king_original_position
+      end
 
-      p black_king_possible_positions
+      black_king_possible_positions = black_king_possible_positions - checked_coordinates
+      
+      p black_king_capturable_positions
 
       return false if black_king_possible_positions.empty? != true
+      
       return true if black_king_possible_positions.empty? == true
     end
 
     if current_player() == 'Black'
       checked_coordinates = []
+      white_king_capturable_positions = []
       white_king_index = @board.white_player.find_index { |unit| unit.type == '♚' }
       white_king = @board.white_player[white_king_index]
+      copy_of_white_king = @board.white_player[white_king_index].clone
       white_king_possible_positions = white_king.possible_positions
       occupied_coordinates = piece_infront_king(white_king)
       occupied_coordinates.each do |occupied_coordinate|
-        white_king_possible_positions = white_king_possible_positions - occupied_coordinate
+        next if white_king_possible_positions.include?(occupied_coordinate) != true
+        temporary_index = white_king_possible_positions.find_index { |possible_position| possible_position == occupied_coordinate }
+        white_king_possible_positions.delete_at(temporary_index)
       end
 
       white_king_original_position = white_king.location.clone
 
+      white_king_possible_positions.append(white_king_original_position)
+
       white_king_possible_positions.each do |white_king_coordinates|
         @board.board[white_king_original_position[0]][white_king_original_position[1]] = ' '
         if @board.board[white_king_coordinates[0]][white_king_coordinates[1]] != ' '
-          temporary_piece = @board.board[white_king_coordinates[0]][white_king_coordinates[1]].clone
+          black_piece_index = @board.black_player.find_index { |black_piece| black_piece.location == [white_king_coordinates[0], white_king_coordinates[1]] }
+          if black_piece_index != nil
+            temporary_piece = @board.board[white_king_coordinates[0]][white_king_coordinates[1]].clone
+            white_king_capturable_positions = white_king_capturable_positions + [[white_king_coordinates[0], white_king_coordinates[1]]]
+            copy_of_black_piece = @board.black_player[black_piece_index].clone
+            @board.black_player.delete_at(black_piece_index)
+          end 
+          @board.board[white_king_coordinates[0]][white_king_coordinates[1]] = ' '
         end
         white_king.location = white_king_coordinates
         @board.board[white_king_coordinates[0]][white_king_coordinates[1]] = white_king.type.white
@@ -844,19 +971,294 @@ class NewGame
         end
         if temporary_piece != nil
           @board.board[white_king_coordinates[0]][white_king_coordinates[1]] = temporary_piece
+          @board.black_player.append(copy_of_black_piece)
         else
           @board.board[white_king_coordinates[0]][white_king_coordinates[1]] = ' '
         end
         @board.board[white_king_original_position[0]][white_king_original_position[1]] = white_king.type.white
         white_king.location = white_king_original_position
       end
-
+      
+      if white_king_capturable_positions.empty? != nil
+        white_king_capturable_positions.each do |white_king_coordinates|
+          @board.board[white_king_original_position[0]][white_king_original_position[1]] = ' '
+          temporary_piece = @board.board[white_king_coordinates[0]][white_king_coordinates[1]].clone
+          @board.board[white_king_coordinates[0]][white_king_coordinates[1]] = ' '
+          white_king.location = white_king_coordinates
+          @board.board[white_king_coordinates[0]][white_king_coordinates[1]] = white_king.type.white
+          @board.black_player.each do |black_piece|
+            if valid_new_coordinates?(black_piece, white_king_coordinates) == true
+              checked_coordinates.append(white_king_coordinates0)
+            end
+          end
+          @board.board[white_king_coordinates[0]][white_king_coordinates[1]] = temporary_piece
+        end
+        @board.board[white_king_original_position[0]][white_king_original_position[1]] = white_king.type.white
+        white_king.location = white_king_original_position
+      end
+      
       white_king_possible_positions = white_king_possible_positions - checked_coordinates
 
       return false if white_king_possible_positions.empty? != true
       return true if white_king_possible_positions.empty? == true
     end
   end
+
+  # ------------------------------ Pawn Promotion Functions ------------------------------ #
+
+  def create_piece_class(piece_string, location, team)
+    if piece_string == 'Queen'
+      queen = Queen.new(location, team)
+      return queen
+    elsif piece_string == 'Rook'
+      rook = Rook.new(location, team)
+      return rook
+    elsif piece_string == 'Bishop'
+      bishop = Bishop.new(location, team)
+      return bishop
+    elsif piece_string == 'Knight'
+      knight = Knight.new(location, team)
+      return knight
+    end
+  end
+
+  def pawn_promotable?(selected_piece)
+    if selected_piece.type == '♟'
+      if selected_piece.team == 'White'
+        white_pawn_location = selected_piece.location
+        if white_pawn_location == [7, white_pawn_location[1]]
+          return true
+        end
+      end
+      if selected_piece.team == 'Black'
+        black_pawn_location = selected_piece.location
+        if black_pawn_location == [0, black_pawn_location[1]]
+          return true
+        end
+      end
+    end
+  end
+
+  def pawn_promotion(selected_piece)
+    if selected_piece.type == '♟'
+      if selected_piece.team == 'White'
+        promoted_unit = ""
+        until promoted_unit == 'Queen' || promoted_unit == 'Rook' || promoted_unit == 'Bishop' || promoted_unit == 'Knight'
+          puts 'What would you like to promote the unit to ?'
+          puts 'Queen | Rook | Bishop | Knight'
+          promoted_unit = gets.chomp
+        end
+        white_piece_location = selected_piece.location
+        white_piece_index = @board.white_player.find_index { |white_piece| white_piece.location == white_piece_location }
+        @board.white_player.delete_at(white_piece_index)
+        promoted_unit_class = create_piece_class(promoted_unit, white_piece_location, selected_piece.team)
+        @board.white_player.append(promoted_unit_class)
+        @board.board[white_piece_location[0]][white_piece_location[1]] = ' '
+        @board.board[white_piece_location[0]][white_piece_location[1]] = promoted_unit_class.type.white
+      end
+
+      if selected_piece.team == 'Black'
+        until promoted_unit == 'Queen' || promoted_unit == 'Rook' || promoted_unit == 'Bishop' || promoted_unit == 'Knight'
+          puts 'What would you like to promote the unit to ?'
+          puts 'Queen | Rook | Bishop | Knight'
+          promoted_unit = gets.chomp
+        end
+        black_piece_location = selected_piece.location
+        black_piece_index = @board.black_player.find_index { |black_piece| black_piece.location == black_piece_location }
+        @board.black_player.delete_at(black_piece_index)
+        promoted_unit_class = create_piece_class(promoted_unit, black_piece_location, selected_piece.team)
+        @board.black_player.append(promoted_unit_class)
+        @board.board[black_piece_location[0]][black_piece_location[1]] = ' '
+        @board.board[black_piece_location[0]][black_piece_location[1]] = promoted_unit_class.type.black
+      end
+    end
+  end
+
+  # ------------------------------ Castling Functions ------------------------------ #
+
+  def check_if_possible_to_castle?(selected_piece, new_coordinates)
+    if selected_piece.type == '♚' && selected_piece.moved == false
+      if selected_piece.team == 'White'
+        new_coordinates_copy = new_coordinates.clone
+        king_coordinates_copy = selected_piece.location.clone
+        
+        if new_coordinates_copy[1] > king_coordinates_copy[1]
+          until new_coordinates_copy[1] == king_coordinates_copy[1]
+            king_coordinates_copy[1] += 1
+            return false if @board.board[king_coordinates_copy[0]][king_coordinates_copy[1]] != ' '
+          end
+          return true
+        elsif king_coordinates_copy[1] > new_coordinates_copy[1]
+          until new_coordinates_copy[1] == king_coordinates_copy[1]
+            king_coordinates_copy[1] -= 1
+            return false if @board.board[king_coordinates_copy[0]][king_coordinates_copy[1]] != ' '
+          end
+          return true
+        end
+      elsif selected_piece.team == 'Black'
+        new_coordinates_copy = new_coordinates.clone
+        king_coordinates_copy = selected_piece.location.clone
+
+        if new_coordinates_copy[1] > king_coordinates_copy[1]
+          until new_coordinates_copy[1] == king_coordinates_copy[1]
+            king_coordinates_copy[1] += 1
+            return false if @board.board[king_coordinates_copy[0]][king_coordinates_copy[1]] != ' '
+          end
+          return true
+        elsif king_coordinates_copy[1] > new_coordinates_copy[1]
+          until new_coordinates_copy[1] == king_coordinates_copy[1]
+            king_coordinates_copy[1] -= 1
+            return false if @board.board[king_coordinates_copy[0]][king_coordinates_copy[1]] != ' '
+          end
+          return true
+        end
+      end
+    end
+  end
+
+  def king_possible_castling_coordinates(selected_piece)
+    if selected_piece.type == '♚' && selected_piece.moved == false
+      castling_coordinates = []
+      if selected_piece.team == 'White'
+        rook_indexes = @board.white_player.each_index.select { |white_index| @board.white_player[white_index].type == '♜' }
+        if rook_indexes.empty? != true
+          rook_indexes.each do |rook_index|
+            rook = @board.white_player[rook_index]
+            if rook.moved == false
+              rook_location = rook.location.clone
+              king_location = selected_piece.location.clone
+              if rook_location[1] > king_location[1]
+                until rook_location[1] == king_location[1]
+                  king_location[1] += 1
+                  if @board.board[king_location[0]][king_location[1]] != ' '
+                    break
+                  end
+                end
+                if king_location[1] == rook_location[1]
+                  castling_coordinates.append([king_location[0], king_location[1] - 1])
+                end
+              elsif king_location[1] > rook_location[1]
+                until rook_location[1] == king_location[1]
+                  king_location[1] -= 1
+                  if @board.board[king_location[0]][king_location[1]] != ' '
+                    break
+                  end
+                end
+                if king_location[1] == rook_location[1]
+                  castling_coordinates.append([king_location[0], king_location[1] + 2])
+                end
+              end
+            end
+          end
+        end
+      elsif selected_piece.team == 'Black'
+          rook_indexes = @board.black_player.each_index.select { |black_index| @board.black_plauer[black_index].type == '♜' }
+          if rook_indexes.empty? != true
+            rook_indexes.each do |rook_index|
+              rook = @board.black_player[rook_index]
+              if rook.moved == false
+                rook_location = rook.location.clone
+                king_location = selected_piece.location.clone
+
+                if rook_location[1] > king_location[1]
+                  until rook_location[1] == king_location[1]
+                    king_location[1] += 1
+                    if @board.board[king_location[0]][king_location[1]] != ' '
+                      break
+                    end
+                  end
+                  if king_location[1] == rook_location[1]
+                    castling_coordinates.append([king_location[0], king_location[1] - 1])
+                  end
+                elsif king_location[1] > rook_location[1]
+                    until rook_location[1] == king_location[1]
+                      king_location[1] -= 1
+                      if @board.board[king_location[0]][king_location[1]] != ' '
+                        break
+                      end
+                    end
+                    if king_location[1] == rook_location[1]
+                      castling_coordinates.append([king_location[0], king_location[1] + 2])
+                    end
+                  end
+                end
+              end
+            end
+          end
+        return castling_coordinates
+      end
+    end
+
+  def castling_move_pieces(selected_piece, new_coordinates)
+    if selected_piece.team == 'White'
+      copy_of_king_coordinates = selected_piece.location.clone
+      copy_of_new_coordinates = new_coordinates.clone
+      if copy_of_king_coordinates[1] > copy_of_new_coordinates[1]
+        @board.board[copy_of_king_coordinates[0]][copy_of_king_coordinates[1]] = ' '
+        king_index = @board.white_player.find_index { |white_piece| white_piece.location == copy_of_king_coordinates }
+        @board.white_player[king_index].location = [0, 2]
+        @board.board[0][2] = selected_piece.type.white
+
+        @board.board[new_coordinates[0]][new_coordinates[1]] = ' '
+        rook_index = @board.white_player.find_index { |white_piece| white_piece.location == new_coordinates }
+        @board.white_player[rook_index].location = [0, 3]
+        @board.board[0][3] = @board.white_player[rook_index].type.white
+
+      elsif copy_of_new_coordinates[1] > copy_of_king_coordinates[1]
+        @board.board[copy_of_king_coordinates[0]][copy_of_king_coordinates[1]] = ' '
+        king_index = @board.white_player.find_index { |white_piece| white_piece.location == copy_of_king_coordinates }
+        @board.white_player[king_index].location = [0, 6]
+        @board.board[0][6] = selected_piece.type.white
+
+        @board.board[new_coordinates[0]][new_coordinates[1]] = ' '
+        rook_index = @board.white_player.find_index { |white_piece| white_piece.location == new_coordinates }
+        @board.white_player[rook_index].location = [0, 5]
+        @board.board[0][5] = @board.white_player[rook_index].type.white
+      end
+    end
+
+    if selected_piece.team == 'Black'
+      copy_of_king_coordinates = selected_piece.location.clone
+      copy_of_new_coordinates = new_coordinates.clone
+      if copy_of_king_coordinates[1] > copy_of_new_coordinates[1]
+        @board.board[copy_of_king_coordinates[0]][copy_of_king_coordinates[1]] = ' '
+        king_index = @board.black_player.find_index { |black_piece| black_piece.location == copy_of_king_coordinates }
+        @board.black_player[king_index].location = [7, 2]
+        @board.board[7][2] = selected_piece.type.black
+
+        @board.board[new_coordinates[0]][new_coordinates[1]] = ' '
+        rook_index = @board.black_player.find_index { |black_piece| black_piece.location == new_coordinates }
+        @board.black_player[rook_index].location = [7, 3]
+        @board.board[7][3] = @board.black_player[rook_index].type.black
+
+      elsif copy_of_new_coordinates[1] > copy_of_king_coordinates[1]
+        @board.board[copy_of_king_coordinates[0]][copy_of_king_coordinates[1]] = ' '
+        king_index = @board.black_player.find_index { |black_piece| black_piece.location == copy_of_king_coordinates }
+        @board.black_player[king_index].location = [7, 6]
+        @board.board[7][6] = selected_piece.type.black
+
+        @board.board[new_coordinates[0]][new_coordinates[1]] = ' '
+        rook_index = @board.black_player.find_index { |black_player| black_player.location == new_coordinates }
+        @board.black_player[rook_index].location = [7, 5]
+        @board.board[7][5] = @board.black_player[rook_index].type.black
+      end
+    end
+  end
+
+  # ------------------------------ Draw Functions ------------------------------ #
+  
+  def two_kings_draw?()
+    if @board.black_player.length == 1 && @board.white_player.length == 1
+      black_index = @board.black_player.find_index { |black_piece| black_piece.type == '♚' }
+      white_index = @board.white_player.find_index { |white_piece| white_piece.type == '♚' }
+      if black_index != nil && white_index != nil
+        return true
+      end
+    end
+  end
+
+
+
 end
 
 

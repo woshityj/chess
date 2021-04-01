@@ -14,14 +14,26 @@ class Pawn
     x_move = [1, 2]
     current_location = @location
     if @team == 'White'
-      x_move.each do |x|
-        new_location = current_location[0] + x
+      if @moved == false
+        x_move.each do |x|
+          new_location = current_location[0] + x
+          possible_positions << [new_location, current_location[1]]
+        end
+      end
+      if @moved == true
+        new_location = current_location[0] + 1
         possible_positions << [new_location, current_location[1]]
       end
     end
     if @team == 'Black'
-      x_move.each do |x|
-        new_location = current_location[0] - x
+      if @moved == false
+        x_move.each do |x|
+          new_location = current_location[0] - x
+          possible_positions << [new_location, current_location[1]]
+        end
+      end
+      if @moved == true
+        new_location = current_location[0] - 1
         possible_positions << [new_location, current_location[1]]
       end
     end
